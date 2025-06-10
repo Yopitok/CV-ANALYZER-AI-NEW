@@ -1,0 +1,9 @@
+streamlit
+pandas
+pdfplumber
+langchain-groq
+langchain-core
+scikit-learn
+joblib
+python-dotenv
+plotly

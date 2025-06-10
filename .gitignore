@@ -1,0 +1,15 @@
+# File: .gitignore
+
+# Folder Virtual Environment
+venv/
+/venv/
+
+# Folder cache Python
+__pycache__/
+*.py[cod]
+
+# File environment (jika ada)
+.env
+
+# Folder Streamlit (untuk menghindari upload cache lokal)
+.streamlit/
