@@ -72,7 +72,9 @@ CV_ANALYZER_FINAL/
 Berikut adalah rincian fungsionalitas utama aplikasi, dari pemrosesan hingga analisis.
 
 ### **1. Pemrosesan CV (Tab: 📤 Upload CV)**
+  ![image](https://github.com/user-attachments/assets/a2fd5e14-efb9-4462-ab91-553709b91373)
 
+  
 -   **Tujuan**: Mengimpor dan menyiapkan data mentah dari file-file CV untuk dianalisis.
 -   **Cara Penggunaan**:
     1.  Navigasi ke tab **"Upload CV"**.
@@ -83,11 +85,12 @@ Berikut adalah rincian fungsionalitas utama aplikasi, dari pemrosesan hingga ana
     -   Menggunakan `pdfplumber` untuk mengekstrak teks dari setiap halaman PDF secara aman.
     -   Menangani file yang gagal diproses dan mengembalikan daftar teks CV yang berhasil diekstrak.
 
-    *Ganti gambar di bawah dengan screenshot tab upload Anda*
-    ![Upload Tab]([LINK_SCREENSHOT_TAB_UPLOAD])
 
 ### **2. Analisis Kualitatif Cepat (Tabs: 🔍 Ringkasan & 🤖 Rekomendasi)**
+   ![image](https://github.com/user-attachments/assets/ca9efaf8-c53c-470e-8d36-98561b6e64f4) 
+   ![image](https://github.com/user-attachments/assets/f3e6ff33-0c3f-407a-b073-ac40a13b999f)
 
+   
 -   **Tujuan**: Mendapatkan pemahaman cepat tentang kandidat secara individu tanpa proses skoring.
 -   **Cara Penggunaan**:
     1.  Pilih tab **"Ringkasan"** atau **"Rekomendasi"**.
@@ -98,11 +101,11 @@ Berikut adalah rincian fungsionalitas utama aplikasi, dari pemrosesan hingga ana
     -   Teks CV tunggal dikirim ke model AI (Llama3-8B untuk ringkasan, Llama3-70B untuk rekomendasi) dengan `temperature=0` untuk hasil yang konsisten.
     -   Hasil teks dari AI langsung ditampilkan di antarmuka.
 
-    *Ganti gambar di bawah dengan screenshot tab rekomendasi*
-    ![Recommendation Tab]([LINK_SCREENSHOT_TAB_REKOMENDASI])
 
 ### **3. Analisis Komparatif (Tab: ⚖️ Perbandingan)**
+  ![image](https://github.com/user-attachments/assets/3f5331d5-6100-4dcc-b56f-d8beadef3819)
 
+  
 -   **Tujuan**: Membandingkan semua kandidat secara langsung untuk sebuah posisi spesifik.
 -   **Cara Penggunaan**:
     1.  Pilih tab **"Perbandingan"**.
@@ -113,8 +116,9 @@ Berikut adalah rincian fungsionalitas utama aplikasi, dari pemrosesan hingga ana
     -   Prompt khusus yang berisi nama jabatan dan semua data CV dikirim ke AI.
     -   AI memberikan analisis perbandingan dan rekomendasi kandidat terbaik.
 
-### **4. Dashboard Analisis Kuantitatif (Tab: 🏆 Dashboard Analisis)**
 
+### **4. Dashboard Analisis Kuantitatif (Tab: 🏆 Dashboard Analisis)**
+![image](https://github.com/user-attachments/assets/49537413-756a-48b8-9237-8c778799e60e)
 Ini adalah fitur inti untuk pemeringkatan berbasis data yang objektif.
 
 -   **Tujuan**: Memberikan skor kuantitatif, memeringkat, dan memvisualisasikan performa kandidat berdasarkan kriteria yang dapat disesuaikan.
@@ -128,11 +132,14 @@ Ini adalah fitur inti untuk pemeringkatan berbasis data yang objektif.
     3.  **Laporan Naratif**: Data 3 kandidat teratas (termasuk skor rinci) dikirim kembali ke AI untuk menghasilkan laporan naratif yang terstruktur.
 -   **Hasil Analisis**:
     -   **Ranking**: Tabel peringkat kandidat berdasarkan skor akhir 0-100.
+![image](https://github.com/user-attachments/assets/6a294617-4635-44df-b1ce-c876f4c5e4c2)
     -   **Visualisasi**: Radar Chart (kekuatan/kelemahan) dan Bar Chart (peringkat skor akhir).
-    -   **Naratif**: Ulasan mendalam dari AI.
+![image](https://github.com/user-attachments/assets/68600ec6-9895-4b04-96e8-9f8726a26472)
 
-    *Ganti gambar di bawah dengan screenshot dashboard Anda*
-    ![Dashboard Tab]([LINK_SCREENSHOT_TAB_DASHBOARD])
+    -   **Naratif**: Ulasan mendalam dari AI.
+![image](https://github.com/user-attachments/assets/f210abfa-11fb-4098-bb51-987bdbb7c700)
+
+   
 
 ---
 
