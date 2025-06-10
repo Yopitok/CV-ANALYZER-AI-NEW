@@ -83,6 +83,8 @@ Berikut adalah rincian fungsionalitas utama aplikasi, dari pemrosesan hingga ana
 
 ### **2. Analisis Kualitatif Cepat (Tabs: 🔍 Ringkasan & 🤖 Rekomendasi)**
    ![image](https://github.com/user-attachments/assets/ca9efaf8-c53c-470e-8d36-98561b6e64f4) 
+
+   
    ![image](https://github.com/user-attachments/assets/f3e6ff33-0c3f-407a-b073-ac40a13b999f)
 
    
