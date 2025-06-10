@@ -1,8 +1,3 @@
-<p align="center">
-  <a href="#">
-    <img src="[LINK_KE_LOGO_ATAU_ICON_PROYEK_ANDA]" alt="CV Analyzer AI Logo" width="120" height="120">
-  </a>
-</p>
 
 <h1 align="center">
   🚀 CV Analyzer AI 🌟
