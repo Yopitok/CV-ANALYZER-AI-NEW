@@ -1,19 +1,19 @@
-# File: src/app.py
+# File: app.py
+
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import logging
-import os
 
-# Impor dari package 'src' yang sudah kita install
-from src.core.utils import initialize_client, init_session_state
-from src.core.parsing import parse_cvs, parse_single_document
-from src.core.services import summarize_cv, recommend_on_cv, compare_cvs
-from src.core.analysis import score_and_analyze_cvs
-from src.config import settings
+# Impor dengan struktur folder baru yang sudah benar
+from core.utils import initialize_client, init_session_state
+from core.parsing import parse_cvs, parse_single_document
+from core.services import summarize_cv, recommend_on_cv, compare_cvs
+from core.analysis import score_and_analyze_cvs
+from config import settings
 
 # ==============================================================================
-# --- Definisi Fungsi untuk Setiap Tab ---
+# --- Definisi Fungsi untuk Setiap Tab (Logika Kembali ke Awal) ---
 # ==============================================================================
 
 def render_upload_tab():
@@ -26,16 +26,22 @@ def render_upload_tab():
     )
     if st.button("Proses File", type="primary", disabled=not uploaded_files, use_container_width=True):
         with st.spinner("Mengekstrak teks dari semua file PDF..."):
+            # Reset state lama sebelum mengisi yang baru
+            st.session_state.cv_texts = []
+            st.session_state.analysis_results = None 
+            for key in list(st.session_state.keys()):
+                if key.startswith('summary_') or key.startswith('recommendation_'):
+                    del st.session_state[key]
+
             cv_data, errors = parse_cvs(uploaded_files)
             st.session_state.cv_texts = cv_data
             for error in errors:
                 st.error(error)
         if st.session_state.cv_texts:
-            st.success(f"✅ {len(st.session_state['cv_texts'])} CV berhasil diproses!")
-            st.session_state.analysis_results = None # Reset hasil lama
+            st.success(f"✅ {len(st.session_state.cv_texts)} CV berhasil diproses!")
 
 def render_summary_tab(client):
-    """Merender konten untuk Tab 2: Ringkasan (dengan UI Dropdown)."""
+    """Merender konten untuk Tab 2: Ringkasan (Gaya Lama dengan Tombol)."""
     st.header("🔍 Ringkasan CV Cepat")
     if not st.session_state.get("cv_texts"):
         st.info("⬅️ Silakan upload dan proses CV di Tab 1 terlebih dahulu.")
@@ -43,7 +49,6 @@ def render_summary_tab(client):
         
     cv_filenames = [cv['filename'] for cv in st.session_state.cv_texts]
     selected_filename = st.selectbox("Pilih CV untuk dilihat ringkasannya:", cv_filenames, key="summary_selectbox")
-
     selected_cv = next((cv for cv in st.session_state.cv_texts if cv['filename'] == selected_filename), None)
 
     if selected_cv:
@@ -62,7 +67,7 @@ def render_summary_tab(client):
                     st.rerun()
 
 def render_recommend_tab(client):
-    """Merender konten untuk Tab 3: Rekomendasi (dengan UI Dropdown)."""
+    """Merender konten untuk Tab 3: Rekomendasi (Gaya Lama dengan Tombol)."""
     st.header("🤖 Rekomendasi AI per Kandidat")
     if not st.session_state.get("cv_texts"):
         st.info("⬅️ Silakan upload dan proses CV di Tab 1 terlebih dahulu.")
@@ -70,7 +75,6 @@ def render_recommend_tab(client):
         
     cv_filenames = [cv['filename'] for cv in st.session_state.cv_texts]
     selected_filename = st.selectbox("Pilih CV untuk mendapatkan rekomendasi:", cv_filenames, key="recommend_selectbox")
-    
     selected_cv = next((cv for cv in st.session_state.cv_texts if cv['filename'] == selected_filename), None)
     
     if selected_cv:
@@ -80,7 +84,8 @@ def render_recommend_tab(client):
             if cache_key in st.session_state:
                 st.markdown(st.session_state[cache_key])
             else:
-                 st.info("Klik tombol di bawah untuk mendapatkan rekomendasi dari AI.")
+                st.info("Klik tombol di bawah untuk mendapatkan rekomendasi dari AI.")
+                
             if st.button("Dapatkan / Perbarui Rekomendasi AI", key=f"rec_btn_{selected_cv['filename']}", use_container_width=True, type="primary"):
                 with st.spinner(f"Menganalisis {selected_cv['filename']}..."):
                     recommendation = recommend_on_cv(client, selected_cv['text'])
@@ -93,8 +98,6 @@ def render_compare_tab(client):
     if not st.session_state.get("cv_texts") or len(st.session_state.get("cv_texts", [])) < 2:
         st.info("⬆️ Upload minimal 2 CV di Tab 1 untuk menggunakan fitur perbandingan.")
         return
-    
-    st.markdown("Masukkan posisi yang sedang Anda cari untuk membandingkan kandidat yang paling relevan.")
     role = st.text_input("Bandingkan untuk posisi:", placeholder="Contoh: Senior Data Scientist")
     if st.button("Bandingkan Kandidat Sekarang", type="primary", use_container_width=True):
         if not role: st.warning("Mohon masukkan posisi yang dicari."); return
@@ -112,31 +115,15 @@ def render_dashboard_tab(client):
     
     with st.container(border=True):
         st.subheader("⚙️ Konfigurasi Analisis")
-        
         st.markdown("**1. (Opsional) Masukkan Deskripsi Pekerjaan (JD)**")
-        st.info("Memberikan JD akan membuat penilaian AI jauh lebih relevan dan kontekstual.")
-        
-        jd_input_method = st.radio("Pilih metode input JD:", ('Tempel Teks', 'Upload File PDF'), horizontal=True, label_visibility="collapsed")
-        jd_text = ""
-        if jd_input_method == 'Tempel Teks':
-            jd_text = st.text_area("Tempelkan deskripsi pekerjaan di sini...", height=150, key="jd_text_area", placeholder="Contoh: Dicari seorang Data Scientist...")
-        else:
-            jd_file = st.file_uploader("Upload file Deskripsi Pekerjaan (Hanya PDF)", type=['pdf'], key="jd_file_uploader")
-            if jd_file:
-                with st.spinner("Membaca file JD..."):
-                    parsed_text, error = parse_single_document(jd_file)
-                    if error:
-                        st.error(error)
-                    else:
-                        jd_text = parsed_text
-                        st.text_area("Teks JD yang berhasil diekstrak:", value=jd_text[:1000] + "...", height=150, disabled=True)
+        jd_text = st.text_area("Tempelkan deskripsi pekerjaan di sini...", height=150, key="jd_text_area", placeholder="Contoh: Dicari seorang Data Scientist...")
         
         st.markdown("**2. Pilih Domain & Atur Bobot**")
         domain = st.selectbox("Pilih Domain Target:", settings.DOMAINS, key="domain_selector")
         active_criteria = settings.CRITERIA_MAP.get(domain, settings.CRITERIA_MAP["general"])
         default_weights = settings.WEIGHTS_MAP.get(domain, {c: 5 for c in active_criteria})
         
-        with st.expander("Atur Pembobotan Kriteria"):
+        with st.expander("Atur Pembobotan Kriteria (Opsional)"):
             user_weights = {}
             cols = st.columns(3)
             for i, crit in enumerate(active_criteria):
@@ -153,15 +140,16 @@ def render_dashboard_tab(client):
             progress_bar.empty()
             st.success("Analisis selesai!")
 
-    if st.session_state.get('analysis_results') and st.session_state.analysis_results['domain'] == domain:
+    if st.session_state.get('analysis_results'):
         _display_dashboard_results(st.session_state.analysis_results)
 
+# --- REVISI: Mengembalikan fungsi _display_dashboard_results ke versi lengkap ---
 def _display_dashboard_results(results_data):
-    """Fungsi helper untuk menampilkan semua hasil dashboard dengan Metric Cards."""
+    """Fungsi helper untuk menampilkan semua hasil dashboard dengan visualisasi lengkap."""
     st.markdown("---")
     st.subheader(f"💡 Hasil Analisis LLM (Domain: {results_data['domain'].upper()})")
     
-    if not results_data['scores']:
+    if not results_data.get('scores'):
         st.warning("Tidak ada data skor untuk ditampilkan.")
         return
         
@@ -170,34 +158,43 @@ def _display_dashboard_results(results_data):
         df['level'] = df['level'].fillna('N/A').astype(str)
     df.fillna(0, inplace=True)
     
-    # --- IMPLEMENTASI IDE 1: Tampilkan KPI dengan st.metric ---
+    # Tampilkan KPI dengan st.metric
     st.divider()
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric(label="Total Kandidat Dianalisis", value=len(df))
     with col2:
-        avg_score = df['skor_akhir_100'].mean() if not df.empty else 0
+        avg_score = df['skor_akhir_100'].mean() if 'skor_akhir_100' in df and not df.empty else 0
         st.metric(label="Skor Rata-Rata", value=f"{avg_score:.1f} / 100")
     with col3:
         top_candidate = df.iloc[0]['nama_file'] if not df.empty else "N/A"
         st.metric(label="Kandidat Teratas", value=top_candidate)
     st.divider()
-    # --- AKHIR IMPLEMENTASI IDE 1 ---
 
+    # Tampilkan tab untuk detail
     tab_rank, tab_vis, tab_narrative = st.tabs(["🏆 Ranking", "📊 Visualisasi", "📝 Naratif"])
 
     with tab_rank:
-        df['Rank'] = range(1, len(df) + 1)
-        display_cols = ['Rank', 'nama_file', 'skor_akhir_100'] + results_data['criteria'] + ['level']
+        df_display = df.copy()
+        df_display['Rank'] = range(1, len(df_display) + 1)
+        # Pastikan kolom 'skor_akhir_100' ada sebelum digunakan di ProgressColumn
+        if 'skor_akhir_100' not in df_display.columns:
+            df_display['skor_akhir_100'] = 0
+
+        display_cols = ['Rank', 'nama_file', 'skor_akhir_100'] + results_data['criteria']
+        if 'level' in df_display.columns:
+            display_cols.append('level')
+
         st.dataframe(
-            df[[c for c in display_cols if c in df.columns]],
+            df_display[[c for c in display_cols if c in df_display.columns]],
             use_container_width=True, hide_index=True,
-            column_config={"skor_akhir_100": st.column_config.ProgressColumn(
-                "Skor AI (0-100)", format="%.1f", min_value=0, max_value=100
-            )}
+            column_config={
+                "skor_akhir_100": st.column_config.ProgressColumn(
+                    "Skor AI (0-100)", format="%.1f", min_value=0, max_value=100
+                )
+            }
         )
-        st.divider()
-        csv_data = df[[c for c in display_cols if c in df.columns]].to_csv(index=False).encode('utf-8')
+        csv_data = df_display[[c for c in display_cols if c in df_display.columns]].to_csv(index=False).encode('utf-8')
         st.download_button("📥 Download Ranking (CSV)", csv_data, f"ranking_{results_data['domain']}.csv", "text/csv")
 
     with tab_vis:
@@ -217,19 +214,17 @@ def _display_dashboard_results(results_data):
             st.plotly_chart(fig, use_container_width=True)
         with col2_vis:
             st.markdown("**Skor Akhir AI (0-100)**")
-            fig = go.Figure(data=[go.Bar(x=df_top['nama_file'], y=df_top['skor_akhir_100'], text=df_top['skor_akhir_100'].round(1), textposition='auto')])
-            fig.update_yaxes(range=[0, 101])
-            st.plotly_chart(fig, use_container_width=True)
+            if 'skor_akhir_100' in df_top.columns:
+                fig_bar = go.Figure(data=[go.Bar(x=df_top['nama_file'], y=df_top['skor_akhir_100'], text=df_top['skor_akhir_100'].round(1), textposition='auto')])
+                fig_bar.update_yaxes(range=[0, 101])
+                st.plotly_chart(fig_bar, use_container_width=True)
     
     with tab_narrative:
         st.markdown("#### Analisis Naratif Mendalam")
         narrative_text = results_data.get('narrative', 'Laporan naratif tidak tersedia.')
         st.markdown(narrative_text, unsafe_allow_html=True)
-        st.divider()
-        st.download_button("📥 Download Laporan (TXT)", narrative_text, f"laporan_naratif_{results_data['domain']}.txt", "text/plain")
 
-
-# --- Fungsi Utama Aplikasi ---
+# --- FUNGSI MAIN TIDAK BERUBAH ---
 def main():
     st.set_page_config(page_title="CV Analyzer Pro", page_icon="🌟", layout="wide")
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

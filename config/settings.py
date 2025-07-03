@@ -1,3 +1,14 @@
+# File: config/settings.py
+
+# Konfigurasi Model LLM
+MODEL_SCORING = "llama3-70b-8192"
+MODEL_NARRATIVE = "llama3-70b-8192"
+MODEL_SUMMARY = "llama3-8b-8192"       # <-- TAMBAHKAN INI
+MODEL_RECOMMENDATION = "llama3-70b-8192" # <-- TAMBAHKAN INI
+MODEL_COMPARISON = "llama3-70b-8192"   # <-- TAMBAHKAN INI
+
+# Konfigurasi Performa
+MAX_CONCURRENT_WORKERS = 5
 # File: src/config/settings.py
 DOMAINS = ["it", "hr", "finance", "marketing", "sales", "operations", "general"]
 CRITERIA_MAP = {
